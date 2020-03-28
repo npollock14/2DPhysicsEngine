@@ -24,27 +24,42 @@ public class Poly {
 			g.drawString(s.getP2().toString(), (int) s.getP2().x + 10, (int) s.getP2().y + 10);
 		}
 	}
-
-	public void addVerts(double... pts) {
-		if (pts.length % 2 != 0)
-			throw new IllegalArgumentException("Polygon must be made with points in 2's");
-		for (int i = 0; i < pts.length - 1; i += 2) {
-			verts.add(new Point((double) pts[i], (double) (pts[i + 1])));
+	public void translate(Vec2 d) {
+		for(Point p : verts) {
+			p.add(d);
+		}
+		for(int i = 0; i < segs.size() - 1; i++) {
+			segs.get(i).translate(d);
 		}
 	}
 
-	public void addVerts(Point... pts) {
-		for (int i = 0; i < pts.length; i++) {
-			verts.add(new Point(pts[i].x, pts[i].y));
-		}
-	}
+	// public void addVerts(double... pts) {
+	// if (pts.length % 2 != 0)
+	// throw new IllegalArgumentException("Polygon must be made with points in
+	// 2's");
+	// for (int i = 0; i < pts.length - 1; i += 2) {
+	// verts.add(new Point((double) pts[i], (double) (pts[i + 1])));
+	// }
+	// }
+	//
+	// public void addVerts(Point... pts) {
+	// for (int i = 0; i < pts.length; i++) {
+	// verts.add(new Point(pts[i].x, pts[i].y));
+	// }
+	// }
 
 	public void addVert(int pos, Point pt) {
 		verts.add(pos, new Point(pt.x, pt.y));
+		segs.set(pos, new Segment(segs.get(pos).getP1(), pt));
+		segs.add(new Segment(pt, segs.get(pos == segs.size() - 1 ? 0 : pos + 1).getP1()));
 	}
 
 	public int numVerts() {
 		return verts.size();
+	}
+
+	public int numEdges() {
+		return segs.size();
 	}
 
 	public boolean surrounds(Point p) {
@@ -53,19 +68,28 @@ public class Poly {
 		double offset = .001;
 
 		for (Segment seg : segs) {
-			System.out.println(seg.getSlope());
 			if (p.y + offset >= seg.yLow && p.y + offset <= seg.yHi) {
-				
+
 				if ((p.y + offset - seg.getP1().y) / seg.getSlope() + seg.getP1().x + offset >= p.x) {
 					ct++;
 				}
 			}
 		}
-		System.out.println(ct);
 		return ct % 2 == 1;
 	}
 
 	public boolean intersects(Poly p) {
+		for (Segment s1 : segs) {
+			for (Segment s2 : p.segs) {
+				if (s1.intersects(s2)) {
+					return true;
+				}
+			}
+		}
+		if (p.surrounds(verts.get(0)))
+			return true;
+		if (this.surrounds(p.verts.get(0)))
+			return true;
 		return false;
 
 	}
@@ -95,9 +119,9 @@ class Segment {
 
 		if (p1.x - p2.x == 0)
 			vert = true;
-		if(!vert) {
-		this.slope = (p1.y - p2.y) / (p1.x - p2.x);
-		}else {
+		if (!vert) {
+			this.slope = (p1.y - p2.y) / (p1.x - p2.x);
+		} else {
 			this.slope = Double.MAX_VALUE;
 		}
 		this.b = p1.y - slope * p1.x;
@@ -120,14 +144,19 @@ class Segment {
 
 		if (p1.x - p2.x == 0)
 			vert = true;
-		if(!vert) {
+		if (!vert) {
 			this.slope = (p1.y - p2.y) / (p1.x - p2.x);
-			}else {
-				this.slope = Double.MAX_VALUE;
-			}
-		
+		} else {
+			this.slope = Double.MAX_VALUE;
+		}
+
 		this.b = p1.y - slope * p1.x;
 		rlen = p1.relDistanceTo(p2);
+	}
+	public void translate(Vec2 v) {
+		p1.add(v);
+		p2.add(v);
+		this.b = p1.y - slope * p1.x;
 	}
 
 	public void setP1(double x, double y) {

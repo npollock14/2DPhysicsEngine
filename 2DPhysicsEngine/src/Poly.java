@@ -3,27 +3,26 @@ import java.util.ArrayList;
 
 public class Poly {
 	private ArrayList<Point> verts = new ArrayList<Point>();
+	private ArrayList<Segment> segs = new ArrayList<Segment>();
 
 	public Poly(double... pts) {
-		if (pts.length % 2 != 0)
-			throw new IllegalArgumentException("Polygon must be made with points in 2's");
+		if (pts.length % 2 != 0 || pts.length < 6)
+			throw new IllegalArgumentException("Polygon must have at least 3 sets of 2 points");
 		for (int i = 0; i < pts.length - 1; i += 2) {
 			verts.add(new Point((double) pts[i], (double) (pts[i + 1])));
 		}
+		for (int i = 0; i < verts.size() - 1; i++) {
+			segs.add(new Segment(verts.get(i), verts.get(i + 1)));
+		}
+
 	}
 
 	public void draw(Graphics g, boolean drawPoints) {
-		for (int i = 0; i < verts.size() - 1; i++) {
-			verts.get(i).drawLine(g, verts.get(i + 1));
-
+		for (Segment s : segs) {
+			s.draw(g, drawPoints);
+			g.drawString(s.getP1().toString(), (int) s.getP1().x + 10, (int) s.getP1().y + 10);
+			g.drawString(s.getP2().toString(), (int) s.getP2().x + 10, (int) s.getP2().y + 10);
 		}
-		if (drawPoints) {
-			for (Point p : verts) {
-				p.fillOval(g, 12);
-				g.drawString(p.toString(), (int) p.x, (int) p.y - 20);
-			}
-		}
-
 	}
 
 	public void addVerts(double... pts) {
@@ -49,23 +48,171 @@ public class Poly {
 	}
 
 	public boolean surrounds(Point p) {
-		
-		int ct = 0;
-		double offset = .1;
 
-		for (int i = 0; i < verts.size() - 1; i++) {
-			double ylow = (verts.get(i).y < verts.get(i + 1).y ? verts.get(i).y : verts.get(i + 1).y);
-			double yhi = (verts.get(i).y > verts.get(i + 1).y ? verts.get(i).y : verts.get(i + 1).y);
-			if (p.y + offset >= ylow && p.y + offset <= yhi) {
-				double s = (verts.get(i).y - verts.get(i + 1).y) / (verts.get(i).x - verts.get(i + 1).x);
-				if ((p.y + offset - verts.get(i).y) / s + verts.get(i).x >= p.x) {
+		int ct = 0;
+		double offset = .001;
+
+		for (Segment seg : segs) {
+			System.out.println(seg.getSlope());
+			if (p.y + offset >= seg.yLow && p.y + offset <= seg.yHi) {
+				
+				if ((p.y + offset - seg.getP1().y) / seg.getSlope() + seg.getP1().x + offset >= p.x) {
 					ct++;
 				}
-
 			}
-
 		}
+		System.out.println(ct);
 		return ct % 2 == 1;
+	}
+
+	public boolean intersects(Poly p) {
+		return false;
+
+	}
+
+}
+
+class Segment {
+	private Point p1, p2;
+	private double slope;
+	private double b;
+	private double rlen;
+	private boolean vert = false;
+	double yLow, yHi;
+
+	public Segment(double x1, double y1, double x2, double y2) {
+		super();
+		this.p1 = new Point(x1, y1);
+		this.p2 = new Point(x2, y2);
+
+		if (y1 > y2) {
+			yHi = y1;
+			yLow = y2;
+		} else {
+			yHi = y2;
+			yLow = y1;
+		}
+
+		if (p1.x - p2.x == 0)
+			vert = true;
+		if(!vert) {
+		this.slope = (p1.y - p2.y) / (p1.x - p2.x);
+		}else {
+			this.slope = Double.MAX_VALUE;
+		}
+		this.b = p1.y - slope * p1.x;
+
+		rlen = p1.relDistanceTo(p2);
+	}
+
+	public Segment(Point p1, Point p2) {
+		super();
+		this.p1 = p1;
+		this.p2 = p2;
+
+		if (p1.y > p2.y) {
+			yHi = p1.y;
+			yLow = p2.y;
+		} else {
+			yHi = p2.y;
+			yLow = p1.y;
+		}
+
+		if (p1.x - p2.x == 0)
+			vert = true;
+		if(!vert) {
+			this.slope = (p1.y - p2.y) / (p1.x - p2.x);
+			}else {
+				this.slope = Double.MAX_VALUE;
+			}
+		
+		this.b = p1.y - slope * p1.x;
+		rlen = p1.relDistanceTo(p2);
+	}
+
+	public void setP1(double x, double y) {
+		this.p1 = new Point(x, y);
+		if (p1.x - p2.x == 0) {
+			vert = true;
+		} else {
+			vert = false;
+		}
+
+		this.slope = (p1.y - p2.y) / (p1.x - p2.x);
+		this.b = p1.y - slope * p1.x;
+
+		rlen = p1.relDistanceTo(p2);
+	}
+
+	public Point getP1() {
+		return p1;
+	}
+
+	public Point getP2() {
+		return p2;
+	}
+
+	public double getSlope() {
+		return slope;
+	}
+
+	public double getB() {
+		return b;
+	}
+
+	public double getRlen() {
+		return rlen;
+	}
+
+	public boolean isVert() {
+		return vert;
+	}
+
+	public void setP2(double x, double y) {
+		this.p2 = new Point(x, y);
+		if (p1.x - p2.x == 0) {
+			vert = true;
+		} else {
+			vert = false;
+		}
+		if (!vert) {
+			this.slope = (p1.y - p2.y) / (p1.x - p2.x);
+			this.b = p1.y - slope * p1.x;
+		}
+		rlen = p1.relDistanceTo(p2);
+	}
+
+	public void draw(Graphics g, boolean drawPoints) {
+		p1.drawLine(g, p2);
+		if (drawPoints) {
+			p1.drawOval(g, 3);
+			p2.drawOval(g, 3);
+		}
+	}
+
+	public boolean intersects(Segment s) {
+		if (!vert && !s.vert) {
+			double x = (s.b - b) / (slope - s.slope);
+			double y = slope * x + b;
+			Point c = new Point(x, y);
+			return p1.relDistanceTo(c) < rlen && p2.relDistanceTo(c) < rlen && s.p1.relDistanceTo(c) < s.rlen
+					&& s.p2.relDistanceTo(c) < s.rlen;
+		} else if (vert && s.vert) {
+			return false;
+		} else if (!vert && s.vert) {
+			double x = s.p1.x;
+			double y = slope * x + b;
+			Point c = new Point(x, y);
+			return p1.relDistanceTo(c) < rlen && p2.relDistanceTo(c) < rlen && s.p1.relDistanceTo(c) < s.rlen
+					&& s.p2.relDistanceTo(c) < s.rlen;
+		} else {
+			double x = p1.x;
+			double y = s.slope * x + s.b;
+			Point c = new Point(x, y);
+			return p1.relDistanceTo(c) < rlen && p2.relDistanceTo(c) < rlen && s.p1.relDistanceTo(c) < s.rlen
+					&& s.p2.relDistanceTo(c) < s.rlen;
+		}
+
 	}
 
 }

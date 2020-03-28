@@ -21,6 +21,9 @@ public class Point {
 	public double distanceTo(Point p2) {
 		return Math.sqrt((this.x - p2.x) * (this.x - p2.x) + (this.y - p2.y) * (this.y - p2.y));
 	}
+	public double relDistanceTo(Point p2) {
+		return ((this.x - p2.x) * (this.x - p2.x) + (this.y - p2.y) * (this.y - p2.y));
+	}
 
 	public double angleTo(Point p2) {
 		try {
@@ -33,7 +36,7 @@ public class Point {
 
 	public boolean inside(Rect r) {
 
-		return (x >= r.pos.x && x <= r.pos.x + r.w && y >= r.pos.y && y <= r.pos.y + r.h);
+		return (x > r.pos.x && x < r.pos.x + r.w && y > r.pos.y && y < r.pos.y + r.h);
 
 	}
 

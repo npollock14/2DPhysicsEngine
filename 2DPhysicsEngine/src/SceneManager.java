@@ -3,7 +3,6 @@ import java.util.ArrayList;
 
 public class SceneManager {
 	static ArrayList<Scene> scenes = new ArrayList<Scene>();
-	static MenuScene ms = new MenuScene(); //menu scene
 	static GameScene gs = new GameScene(); //game scene
 	
 	public static void update() {
@@ -39,7 +38,6 @@ public class SceneManager {
 	
 	
 	public static void initManager() {
-		scenes.add(ms);
 		scenes.add(gs);
 	}
 

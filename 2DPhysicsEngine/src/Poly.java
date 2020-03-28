@@ -25,6 +25,7 @@ public class Poly {
 		}
 	}
 	public void translate(Vec2 d) {
+		//TODO FIX
 		for(Point p : verts) {
 			p.add(d);
 		}

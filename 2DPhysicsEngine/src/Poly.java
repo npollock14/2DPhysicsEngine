@@ -2,8 +2,12 @@ import java.awt.Graphics;
 import java.util.ArrayList;
 
 public class Poly {
-	private ArrayList<Point> verts = new ArrayList<Point>();
-	private ArrayList<Segment> segs = new ArrayList<Segment>();
+	ArrayList<Point> verts = new ArrayList<Point>();
+	ArrayList<Segment> segs = new ArrayList<Segment>();
+	ArrayList<Double> distances = new ArrayList<Double>();
+	double rotation = 0.0;
+	Point center = new Point(0, 0);
+	double area;
 
 	public Poly(double... pts) {
 		if (pts.length % 2 != 0 || pts.length < 6)
@@ -14,7 +18,10 @@ public class Poly {
 		for (int i = 0; i < verts.size() - 1; i++) {
 			segs.add(new Segment(verts.get(i), verts.get(i + 1)));
 		}
-
+		updateCenter();
+		for (int i = 0; i < verts.size(); i++) {
+			distances.add(center.distanceTo(verts.get(i)));
+		}
 	}
 
 	public void draw(Graphics g, boolean drawPoints) {
@@ -23,36 +30,71 @@ public class Poly {
 			g.drawString(s.getP1().toString(), (int) s.getP1().x + 10, (int) s.getP1().y + 10);
 			g.drawString(s.getP2().toString(), (int) s.getP2().x + 10, (int) s.getP2().y + 10);
 		}
+		for (Point p : verts) {
+			p.drawOval(g, 10);
+		}
+		drawCenter(g, 20);
 	}
+
 	public void translate(Vec2 d) {
-		//TODO FIX
-		for(Point p : verts) {
+		for (Point p : verts) {
 			p.add(d);
 		}
-		for(int i = 0; i < segs.size() - 1; i++) {
-			segs.get(i).translate(d);
+		for (Segment s : segs) {
+			s.tUpdate(d);
+		}
+		center.add(d);
+	}
+
+	public void rotate(double rad) { //TODO fix
+		rotation += rad;
+		for (int i = 0; i < verts.size(); i++) {
+			verts.set(i, new Point(center.x + distances.get(i) * Math.cos(rotation), center.y + distances.get(i) * Math.sin(rotation))); //full calculation - can be approximated
+		}
+		for(Segment s : segs) {
+			s.rUpdate();
 		}
 	}
 
-	// public void addVerts(double... pts) {
-	// if (pts.length % 2 != 0)
-	// throw new IllegalArgumentException("Polygon must be made with points in
-	// 2's");
-	// for (int i = 0; i < pts.length - 1; i += 2) {
-	// verts.add(new Point((double) pts[i], (double) (pts[i + 1])));
-	// }
-	// }
-	//
-	// public void addVerts(Point... pts) {
-	// for (int i = 0; i < pts.length; i++) {
-	// verts.add(new Point(pts[i].x, pts[i].y));
-	// }
-	// }
+	public void updateCenter() {
+		updateArea();
+		double cX = 0.0;
+		double cY = 0.0;
+		for (int i = 0; i < verts.size() - 1; i++) {
+			Point c = verts.get(i);
+			Point n = verts.get(i + 1);
+			cX += (c.x + n.x) * (c.x * n.y - n.x * c.y);
+			cY += (c.y + n.y) * (c.x * n.y - n.x * c.y);
+		}
+		cX /= (6 * area);
+		cY /= (6 * area);
+		center.x = cX;
+		center.y = cY;
+
+	}
+
+	public void drawCenter(Graphics g, int r) {
+		center.drawOval(g, r);
+		new Point(center.x - r / 2, center.y).drawLine(g, new Point(center.x + r / 2, center.y));
+		new Point(center.x, center.y + r / 2).drawLine(g, new Point(center.x, center.y - r / 2));
+	}
+
+	public void updateArea() {
+		double a = 0.0;
+		for (int i = 0; i < verts.size() - 1; i++) {
+			Point c = verts.get(i);
+			Point n = verts.get(i + 1);
+			a += c.x * n.y - n.x * c.y;
+		}
+		a /= 2.0;
+		area = a;
+	}
 
 	public void addVert(int pos, Point pt) {
 		verts.add(pos, new Point(pt.x, pt.y));
 		segs.set(pos, new Segment(segs.get(pos).getP1(), pt));
 		segs.add(new Segment(pt, segs.get(pos == segs.size() - 1 ? 0 : pos + 1).getP1()));
+		updateCenter();
 	}
 
 	public int numVerts() {
@@ -66,16 +108,17 @@ public class Poly {
 	public boolean surrounds(Point p) {
 
 		int ct = 0;
-		double offset = .001;
+		double offset = .0001;
 
 		for (Segment seg : segs) {
-			if (p.y + offset >= seg.yLow && p.y + offset <= seg.yHi) {
+			if (p.y + offset > seg.yLow && p.y + offset < seg.yHi) {
 
-				if ((p.y + offset - seg.getP1().y) / seg.getSlope() + seg.getP1().x + offset >= p.x) {
+				if ((p.y + offset - seg.getP1().y) / seg.getSlope() + seg.getP1().x + offset > p.x) {
 					ct++;
 				}
 			}
 		}
+		System.out.println(ct);
 		return ct % 2 == 1;
 	}
 
@@ -87,10 +130,12 @@ public class Poly {
 				}
 			}
 		}
-		if (p.surrounds(verts.get(0)))
+		if (p.surrounds(verts.get(0))) {
 			return true;
-		if (this.surrounds(p.verts.get(0)))
+		}
+		if (this.surrounds(p.verts.get(0))) {
 			return true;
+		}
 		return false;
 
 	}
@@ -154,9 +199,28 @@ class Segment {
 		this.b = p1.y - slope * p1.x;
 		rlen = p1.relDistanceTo(p2);
 	}
-	public void translate(Vec2 v) {
-		p1.add(v);
-		p2.add(v);
+
+	public void tUpdate(Vec2 v) {
+		yLow += v.y;
+		yHi += v.y;
+		this.b = p1.y - slope * p1.x;
+	}
+	public void rUpdate() {
+		if (p1.y > p2.y) {
+			yHi = p1.y;
+			yLow = p2.y;
+		} else {
+			yHi = p2.y;
+			yLow = p1.y;
+		}
+
+		if (p1.x - p2.x == 0)
+			vert = true;
+		if (!vert) {
+			this.slope = (p1.y - p2.y) / (p1.x - p2.x);
+		} else {
+			this.slope = Double.MAX_VALUE;
+		}
 		this.b = p1.y - slope * p1.x;
 	}
 
@@ -166,6 +230,13 @@ class Segment {
 			vert = true;
 		} else {
 			vert = false;
+		}
+		if (p1.y > p2.y) {
+			yHi = p1.y;
+			yLow = p2.y;
+		} else {
+			yHi = p2.y;
+			yLow = p1.y;
 		}
 
 		this.slope = (p1.y - p2.y) / (p1.x - p2.x);
@@ -205,6 +276,15 @@ class Segment {
 		} else {
 			vert = false;
 		}
+		
+		if (p1.y > p2.y) {
+			yHi = p1.y;
+			yLow = p2.y;
+		} else {
+			yHi = p2.y;
+			yLow = p1.y;
+		}
+		
 		if (!vert) {
 			this.slope = (p1.y - p2.y) / (p1.x - p2.x);
 			this.b = p1.y - slope * p1.x;
@@ -243,6 +323,10 @@ class Segment {
 					&& s.p2.relDistanceTo(c) < s.rlen;
 		}
 
+	}
+
+	public String toString() {
+		return "<" + p1.toString() + " -> " + p2.toString() + ">";
 	}
 
 }

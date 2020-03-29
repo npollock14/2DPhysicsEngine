@@ -2,9 +2,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 
 public class GameScene extends Scene {
-	Poly p = new Poly(500,500,700,500,700,700,500,700,500,500);
-	Poly p2 = new Poly(700,700,600,900,400,550,700,700);
-	boolean added = false;
+	Poly p; 
+	Poly p2; 
 	Vec2 vel = new Vec2(0,0);
 	int velMult = 4;
 
@@ -18,10 +17,14 @@ public class GameScene extends Scene {
 
 	@Override
 	public void update() {
-		if(!added && InputManager.keys[32]) {
-			p.addVert(2, new Point(600,800));
-			added = true;
+		
+		if(InputManager.keys[81]) {
+			p.rotate(.1);
 		}
+		if(InputManager.keys[69]) {
+			p.rotate(-.1);
+		}
+		
 		if(InputManager.keys[38]) {
 			vel.y -= velMult;
 		}
@@ -41,7 +44,10 @@ public class GameScene extends Scene {
 
 	@Override
 	public void init() {
-		
+		//p = new Poly(500,500,600,500,600,600,500,600,500,500);
+//		p2 = new Poly(500,500,700,500,700,800,500,800,500,500);
+		p = new Poly(1184.0,-116.0,1234.0,-76.0,1034.0,24.0,984.0,184.0,1284.0,284.0,1284.0,384.0,1484.0,484.0,1084.0,734.0,884.0,134.0,1184.0,-116.0);
+		p2 = new Poly(700,300,800,500,700,550,600,800, 400,500,200,500,700,300);
 	}
 
 }

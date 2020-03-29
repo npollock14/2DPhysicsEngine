@@ -64,4 +64,7 @@ public class Point {
 	public void fillOval(Graphics g, int d) {
 		g.fillOval((int)(x - d/2), (int) (y - d/2), d, d);
 	}
+	public Point clone() {
+		return new Point(x,y);
+	}
 }

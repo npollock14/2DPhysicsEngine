@@ -5,7 +5,8 @@ public class Poly {
 	ArrayList<Point> verts = new ArrayList<Point>();
 	ArrayList<Segment> segs = new ArrayList<Segment>();
 	ArrayList<Double> distances = new ArrayList<Double>();
-	double rotation = 0.0;
+	ArrayList<Double> rotations = new ArrayList<Double>();
+	double rotation = Math.PI;
 	Point center = new Point(0, 0);
 	double area;
 
@@ -21,6 +22,7 @@ public class Poly {
 		updateCenter();
 		for (int i = 0; i < verts.size(); i++) {
 			distances.add(center.distanceTo(verts.get(i)));
+			rotations.add(center.angleTo(verts.get(i)));
 		}
 	}
 
@@ -49,7 +51,7 @@ public class Poly {
 	public void rotate(double rad) { //TODO fix
 		rotation += rad;
 		for (int i = 0; i < verts.size(); i++) {
-			verts.set(i, new Point(center.x + distances.get(i) * Math.cos(rotation), center.y + distances.get(i) * Math.sin(rotation))); //full calculation - can be approximated
+			verts.set(i, new Point(center.x + distances.get(i) * Math.cos(rotation + rotations.get(i)), center.y + distances.get(i) * Math.sin(rotation + rotations.get(i)))); //full calculation - can be approximated
 		}
 		for(Segment s : segs) {
 			s.rUpdate();

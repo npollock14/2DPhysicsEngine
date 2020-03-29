@@ -6,23 +6,30 @@ public class GameScene extends Scene {
 	Poly p2; 
 	Vec2 vel = new Vec2(0,0);
 	int velMult = 4;
+	Point center = new Point(Driver.screenWidth/2, Driver.screenHeight/2);
 
 	@Override
 	public void draw(Graphics g) {
 		p2.draw(g, true);
 		p.draw(g, true);
 		g.setFont(Misc.fBig);
-		g.drawString(""+p.intersects(p2), 500, 500);
+		//g.drawString(""+p.intersects(p2), 500, 500);
+		
+		//center.drawOval(g, 10);
+		//g.drawString(""+center.angleTo(InputManager.mPos), 100, 100);
+		
+		
+		
 	}
 
 	@Override
 	public void update() {
 		
 		if(InputManager.keys[81]) {
-			p.rotate(.1);
+			p.rotate(.01);
 		}
 		if(InputManager.keys[69]) {
-			p.rotate(-.1);
+			p.rotate(-.01);
 		}
 		
 		if(InputManager.keys[38]) {

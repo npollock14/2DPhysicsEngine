@@ -1,4 +1,5 @@
 import java.awt.Graphics;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 public class Poly {
@@ -37,6 +38,10 @@ public class Poly {
 		}
 		drawCenter(g, 20);
 	}
+	
+	public void deIntersectSimple(Poly p) {
+		//for()
+	}
 
 	public void translate(Vec2 d) {
 		for (Point p : verts) {
@@ -51,7 +56,8 @@ public class Poly {
 	public void rotate(double rad) { //TODO fix
 		rotation += rad;
 		for (int i = 0; i < verts.size(); i++) {
-			verts.set(i, new Point(center.x + distances.get(i) * Math.cos(rotation + rotations.get(i)), center.y + distances.get(i) * Math.sin(rotation + rotations.get(i)))); //full calculation - can be approximated
+			verts.get(i).x = center.x + distances.get(i) * Math.cos(rotation + rotations.get(i));
+			verts.get(i).y = center.y + distances.get(i) * Math.sin(rotation + rotations.get(i)); //full calculation - can be approximated
 		}
 		for(Segment s : segs) {
 			s.rUpdate();
@@ -120,7 +126,6 @@ public class Poly {
 				}
 			}
 		}
-		System.out.println(ct);
 		return ct % 2 == 1;
 	}
 

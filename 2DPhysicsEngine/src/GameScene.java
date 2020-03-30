@@ -13,7 +13,7 @@ public class GameScene extends Scene {
 		p2.draw(g, true);
 		p.draw(g, true);
 		g.setFont(Misc.fBig);
-		//g.drawString(""+p.intersects(p2), 500, 500);
+		g.drawString(""+p.intersects(p2), 500, 500);
 		
 		//center.drawOval(g, 10);
 		//g.drawString(""+center.angleTo(InputManager.mPos), 100, 100);
@@ -26,10 +26,10 @@ public class GameScene extends Scene {
 	public void update() {
 		
 		if(InputManager.keys[81]) {
-			p.rotate(.01);
+			p.rotate(.05);
 		}
 		if(InputManager.keys[69]) {
-			p.rotate(-.01);
+			p.rotate(-.05);
 		}
 		
 		if(InputManager.keys[38]) {
